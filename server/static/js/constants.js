@@ -1,0 +1,9 @@
+var STARTING_LAT = 49.175399;
+var STARTING_LONG = -123.069271;
+var STARTING_ZOOM = 15;
+
+var SERVER_ADDRESS = 'http://localhost/api';
+
+var SEND_CONFIG = 1;
+var GET_PICTURE = 2;
+var GET_CONFIG = 3;

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Tracker</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/tether.min.js"></script>
+    <script src="js/moment-min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="js/paper-full.min.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/networkUtils.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/search.js"></script>
+    <link rel="stylesheet" src="text/css" href="css/main.css">
+    <link rel="stylesheet" src="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" src="text/css" href="css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" src="text/css" href="css/bootstrap-grid.min.css">
+    <link rel="stylesheet" src="text/css" href="css/bootstrap-reboot.min.css">
+</head>
+<body>
+
+<div id="mainContainer" class="container no-gutters" sytle="margin: 0 auto;">
+    <div id="mainRow" class="row no-gutters">
+        <div class="col-md-12">
+            <div id="map"></div>
+        </div>
+
+        <div class="col-md-3 rounded" id="focusWindow">
+            <div id="focusWindowContainer" class="container">
+                <div class="row">
+                    <div class="col-sm-10">
+                        <h1 id="focusWindowTitle" class="modal-title">Granville Street</h1>
+                    </div>
+                    <div class="col-sm-2">
+                        <button id="focusWindowClose" type="button" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3 id="focusWindowInfoSubtitle" class="modal-title">Info</h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">Location (lat, long):</div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <input id="focusLatInput" class="form-control" type="text" value="49.123">
+                        </div>
+                        <div class="form-group">
+                            <input id="focusLongInput" class="form-control" type="text" value="-123.123">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">Frame Rate:</div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <input id="focusFrameRateInput" class="form-control" type="number" min="0" max="20" value="10">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">Name:</div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <input id="focusNameInput" class="form-control" type="text" value="Granville Street">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">Last check-in:</div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <span id="focusLastCheckin"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6"><button id="deleteDeviceFocusWindow" class="btn btn-danger">Delete</button></div>
+                    <div class="col-sm-6"><button class="btn btn-primary">Save</button></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3 id="focusWindowRecordsSubtitle" class="modal-title">Records</h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">Detections in Last 24hr: </div>
+                    <div id="focusGlanceTableContainer" class="col-sm-12">
+                        <table id="focusGlanceTable" class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div id="focusWindowConfigureBtn" class="row">
+                    <div class="col-sm-6"><button class="btn btn-primary">Configure</button></div>
+                </div>
+            </div>
+        </div>
+        <div id="btnCenter" class="col-sm-2 push-sm-10">
+            <div class="container">
+                <div class="row">
+                    <!--<div class="col-sm-6"></div>-->
+                    <div class="btn-group-vertical mr-2">
+                        <button type="button" id="searchBtn" class="btn btn-lg btn-primary">Search</button>
+                        <button type="button" id="addDeviceBtn" class="btn btn-lg btn-primary">Add Device</button>
+                        <button type="button" id="logoutBtn" class="btn btn-lg btn-primary">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCpS3SlUbCWcxiweL0fFfvgJ-tKDULZXQo"
+        async defer></script>
+
+
+<div class="modal" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="model-content">
+            <div class="modal-header">
+                <h1 id="loginModalTitle" class="modal-title">Vehicle Tracker</h1>
+            </div>
+            <div class="modal-body">
+                <form class="form-signin">
+                    <div class="input-group-lg">
+                        <input class="form-control" id="loginUsername" type="text" placeholder="Username">
+                    </div>
+                    <div class="input-group-lg">
+                        <input class="form-control" id="loginPassword" type="password" placeholder="Password">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="loginBtn" class="btn btn-outline-secondary" type="button">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Search</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-6">
+                                    Devices:
+                                </div>
+                                <div id="deviceCheckboxes" class="col-6">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    Vehicle Types:
+                                </div>
+                                <div id="searchCategories" class="col-6">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    Start Datetime:
+                                </div>
+                                <div class="col-6">
+                                    <div class='input-group date' id='startSearchTime'>
+                                        <input type='text' class="form-control" />
+                                        <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                    <!--<div class="form-group">-->
+                                        <!--<input type="datetime-local" class="form-control" id="startSearchTime">-->
+                                    <!--</div>-->
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    End Datetime:
+                                </div>
+                                <div class="col-6">
+                                    <div class='input-group date' id='endSearchTime'>
+                                        <input type='text' class="form-control" />
+                                        <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                    <!--<div class="form-group">-->
+                                        <!--<input type="datetime-local" class="form-control" id="endSearchTime">-->
+                                    <!--</div>-->
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6"></div>
+                                <div class="col-sm-6"><button id="searchModalButton" class="btn btn-primary">Search/Apply Filters</button></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <table id="searchResults" class="table table-sm">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="configureModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="configureModalTitle"><h2>Configure</h2></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="container">
+                        <div class="alert alert-success collapse" id="configureSuccessAlert" role="alert">
+                            <span id="configSuccessBox"></span>
+                        </div>
+                        <div class="alert alert-danger collapse" id="configureErrorAlert" role="alert">
+                            <span id="configErrorBox"></span>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="col-12">
+                                <h3>Still Frame</h3>
+                            </div>
+                            <div class="col-12">
+                                <div style="height: 360px;">
+                                    <img id="previewImg" style="position:absolute"  src="images/placeholder.jpg">
+                                    <canvas id="myCanvas" style="position:absolute;" width="640" height="360"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" id="getPreview" class="btn btn-primary">Get New Picture</button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="col-12">
+                                <h3>Current Config</h3>
+                            </div>
+                            <div class="col-12">
+                                <textarea readonly id="currentConfig">
+
+                                </textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" id="getConfigBtn" class="btn btn-secondary">Get Config</button>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="col-12">
+                                <h3>New Config</h3>
+                            </div>
+                            <div class="col-12">
+                                <textarea id="newConfig">
+
+                                </textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" id="saveConfigBtn" class="btn btn-secondary">Save Config</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="addDeviceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDeviceTitle">Add Device</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="container">
+                            <div class="alert alert-success collapse" id="addDeviceSuccessAlert" role="alert">
+                                Device was added successfully, put this token: <br>
+                                <span id="tokenBox"></span> <br> in your device's configuration file.
+                            </div>
+                            <div class="alert alert-danger collapse" id="addDeviceErrorAlert" role="alert">
+                                Device was not added successfully!
+                                <br>
+                                <span id="errorBox"></span>
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">Name:</div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <input id="addNameInput" class="form-control" type="text" placeholder="Insert Name Here">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">Location (lat, long):
+                            <br>
+                            <button id="clickPointOnMap" class="btn btn-primary">Click On Map</button>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <input id="addLatInput" class="form-control" type="text" placeholder="xx.xxx">
+                            </div>
+                            <div class="form-group">
+                                <input id="addLongInput" class="form-control" type="text" placeholder="xx.xxx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6"></div>
+                        <div class="col-sm-6"><button id="addDeviceSaveBtn" class="btn btn-primary">Save</button></div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

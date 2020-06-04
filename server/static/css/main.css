@@ -1,0 +1,68 @@
+
+#loginModal {
+    /*background: #aaa;*/
+}
+
+
+#mainRow {
+    height: 100%;
+}
+
+#loginModalTitle
+{
+    margin: 0 auto;
+    color: #e6e6e6;
+}
+
+#focusWindowTitle, #focusWindowInfoSubtitle, #focusWindowRecordsSubtitle, #focusSearchSubTitle{
+    color: #555;
+}
+
+.modal-backdrop {
+    opacity: 0.65 !important;
+}
+#tokenBox {
+    word-wrap: break-word;
+}
+#focusWindow {
+    display: none;
+    background: #fff;
+    border-color: #adadad;
+    position: absolute;
+    margin: 15px;
+    height: 90%;
+    border-radius: 10px;
+    border-width: thin;
+}
+
+#focusWindowContainer {
+    height: 100%;
+}
+
+#mainContainer {
+    padding-left: 0;
+    padding-right: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#focusGlanceTableContainer {
+    max-height: 200px !important;
+    overflow-y: auto;
+}
+
+#btnCenter {
+    position: absolute;
+    bottom: 25px;
+}
+#focusWindowConfigureBtn {
+    position: absolute;
+    bottom: 25px;
+}
+
+textarea {
+    width: 100%;
+    height: 30em;
+    display: block;
+    resize: vertical;
+}
